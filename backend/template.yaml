@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Virtual Closet - demo prototype (CSC1057, DCU). Whole backend in one file.
+
+Resources:
+  # ---------- Login: Amazon Cognito ----------
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: virtual-closet-users
+      UsernameAttributes: [email]          # users sign in with their email
+      AutoVerifiedAttributes: [email]      # Cognito emails a verification code
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: virtual-closet-web
+      GenerateSecret: false                # a browser app cannot keep a secret
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  # ---------- API: API Gateway HTTP API ----------
+  ClosetApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ["*"]                # prototype only: any website may call the API
+        AllowHeaders: [Authorization, Content-Type]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer   # every route needs a valid Cognito token
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience:
+                - !Ref UserPoolClient
+
+  # ---------- Code: one Lambda function ----------
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/index.handler
+      Runtime: nodejs24.x
+      Architectures: [arm64]
+      MemorySize: 256
+      Timeout: 15
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ClothesTable
+          BUCKET_NAME: !Ref PhotosBucket
+          # Our AWS Free plan account only allows eu-north-1 (Stockholm), where
+          # Rekognition does not exist, so the AI is simulated ("AI: simulated").
+          # Set to "true" if you deploy in a region that has Rekognition (e.g. eu-west-1).
+          USE_REKOGNITION: "false"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ClothesTable
+        - S3CrudPolicy:
+            BucketName: !Ref PhotosBucket
+        - Statement:
+            - Effect: Allow
+              Action: rekognition:DetectLabels
+              Resource: "*"
+      Events:                              # the 5 routes of the API
+        AddItem:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClosetApi
+            Method: POST
+            Path: /items
+        ListItems:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClosetApi
+            Method: GET
+            Path: /items
+        UpdateItem:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClosetApi
+            Method: PUT
+            Path: /items/{id}
+        DeleteItem:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClosetApi
+            Method: DELETE
+            Path: /items/{id}
+        GetOutfit:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ClosetApi
+            Method: GET
+            Path: /outfit
+
+  # ---------- Data: DynamoDB table of clothes ----------
+  ClothesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - { AttributeName: userId, AttributeType: S }
+        - { AttributeName: itemId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: userId, KeyType: HASH }   # partition key: one "shelf" per user
+        - { AttributeName: itemId, KeyType: RANGE }  # sort key: one item on the shelf
+      BillingMode: PROVISIONED                       # 2 + 2 units stay inside the always-free tier
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+  # ---------- Photos: private S3 bucket ----------
+  PhotosBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:      # nobody can make a photo public
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  ApiUrl:
+    Description: Put this in VITE_API_URL
+    Value: !Sub https://${ClosetApi}.execute-api.${AWS::Region}.amazonaws.com
+  UserPoolId:
+    Description: Put this in VITE_USER_POOL_ID
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Put this in VITE_USER_POOL_CLIENT_ID
+    Value: !Ref UserPoolClient
+  PhotosBucketName:
+    Description: Private bucket holding the photos
+    Value: !Ref PhotosBucket
