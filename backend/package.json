@@ -1,0 +1,17 @@
+{
+  "name": "virtual-closet-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Virtual Closet API - one AWS Lambda function",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-rekognition": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@aws-sdk/s3-request-presigner": "^3.0.0"
+  }
+}
