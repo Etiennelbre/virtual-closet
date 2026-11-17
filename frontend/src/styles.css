@@ -1,0 +1,194 @@
+/* Virtual Closet - one simple stylesheet.
+   Colours from our Figma mock-ups: white background, violet buttons, rounded cards. */
+
+:root {
+  --violet: #6C4CF1;
+  --violet-light: #EEE9FE;
+  --text: #1F1B2D;
+  --muted: #6B6880;
+  --border: #E4E1EE;
+  --red: #D93A3A;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: #fff;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; }
+h1, h2, h3 { margin: 0 0 12px; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.1rem; margin-top: 20px; }
+
+/* Amplify login screen in our violet.
+   Same selector as Amplify's own stylesheet, so our colours replace theirs. */
+:root, [data-amplify-theme] {
+  --amplify-colors-primary-10: #EEE9FE;
+  --amplify-colors-primary-20: #DCD2FC;
+  --amplify-colors-primary-40: #B3A0F8;
+  --amplify-colors-primary-60: #8E73F4;
+  --amplify-colors-primary-80: #6C4CF1;
+  --amplify-colors-primary-90: #5A3AD8;
+  --amplify-colors-primary-100: #4A2DC0;
+}
+[data-amplify-authenticator] { padding: 24px 16px; }
+
+/* ---------- Layout: phone-sized column ---------- */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.header h1 { flex: 1; margin: 0; font-size: 1.3rem; color: var(--violet); }
+
+.screen { padding: 16px 16px 96px; } /* bottom space for the tab bar */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom); /* iPhone home bar */
+}
+.tab {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 8px 0 10px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tab-icon { font-size: 1.3rem; }
+.tab.active { color: var(--violet); font-weight: 600; }
+
+/* ---------- Buttons ---------- */
+button { font: inherit; cursor: pointer; }
+.button {
+  display: inline-block;
+  background: var(--violet);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+.button.big { display: block; width: 100%; padding: 16px; font-size: 1.05rem; margin: 12px 0; }
+.button:disabled { opacity: 0.5; cursor: not-allowed; }
+.link { border: none; background: none; color: var(--violet); padding: 4px; }
+.delete {
+  border: 1px solid var(--red);
+  color: var(--red);
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin-top: 6px;
+}
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.chip {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  text-transform: capitalize;
+}
+.chip.active { background: var(--violet); border-color: var(--violet); color: #fff; }
+
+/* ---------- Cards and grid ---------- */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(108, 76, 241, 0.08);
+}
+.card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: var(--violet-light); }
+.card-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.card-body strong { text-transform: capitalize; }
+.result { margin-top: 16px; }
+.result img { aspect-ratio: auto; max-height: 360px; object-fit: contain; }
+
+.badge {
+  align-self: flex-start;
+  background: var(--violet);
+  color: #fff;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.badge.simulated { background: #F2A33A; }
+
+/* ---------- Forms ---------- */
+label { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-weight: 600; }
+select, input {
+  font: inherit;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.row { display: flex; gap: 8px; margin-bottom: 16px; }
+.row input { flex: 1; min-width: 0; }
+
+/* ---------- Outfit ---------- */
+.weather {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: var(--violet-light);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.explanation { background: #F7F6FB; border-radius: 12px; padding: 12px; }
+
+/* ---------- Feed, tables, messages ---------- */
+.banner {
+  background: #FFF4E0;
+  color: #8A5A00;
+  border: 1px solid #F2A33A;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+.post { display: flex; margin-bottom: 12px; }
+.post-photo {
+  width: 90px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: var(--violet-light);
+}
+.post p { margin: 0; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 8px; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+
+.muted { color: var(--muted); }
+.small { font-size: 0.8rem; margin-top: 16px; }
+.error { color: var(--red); font-weight: 600; }
