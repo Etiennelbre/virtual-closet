@@ -1,0 +1,25 @@
+# Continuous integration: on every push and pull request, check that the
+# backend tests pass and that the frontend builds. No deployment here
+# (deployment is done with SAM and Amplify, see DEPLOYMENT.md).
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Backend - install and test
+        working-directory: backend
+        run: npm ci && npm test
+      - name: Frontend - install and build
+        working-directory: frontend
+        run: npm ci && npm run build
+        env: # dummy values: the build only needs them to exist
+          VITE_REGION: eu-north-1
+          VITE_USER_POOL_ID: eu-north-1_dummy
+          VITE_USER_POOL_CLIENT_ID: dummy
+          VITE_API_URL: https://example.com
